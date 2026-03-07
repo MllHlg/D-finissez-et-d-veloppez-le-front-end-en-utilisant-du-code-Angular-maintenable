@@ -2,6 +2,7 @@ import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import Chart from 'chart.js/auto';
+import { Header } from 'src/app/models/header.model';
 
 
 @Component({
@@ -17,6 +18,7 @@ export class CountryComponent implements OnInit {
   public totalMedals: number = 0;
   public totalAthletes: number = 0;
   public error!: string;
+  public header!: Header;
 
   constructor(private route: ActivatedRoute, private router: Router, private http: HttpClient) {
   }
@@ -37,6 +39,14 @@ export class CountryComponent implements OnInit {
           const nbAthletes = selectedCountry?.participations.map((i: any) => i.athleteCount.toString()) ?? []
           this.totalAthletes = nbAthletes.reduce((accumulator: any, item: any) => accumulator + parseInt(item), 0);
           this.buildChart(years, medals);
+          this.header = {
+            title: this.titlePage,
+            listOfHeaderCards: [
+              { title: "Number of entries", numberValue: this.totalEntries },
+              { title: "Total Number of medals", numberValue: this.totalMedals },
+              { title: "Total Number of athletes", numberValue: this.totalAthletes }
+            ]
+          }
         }
       },
       (error: HttpErrorResponse) => {
@@ -59,7 +69,8 @@ export class CountryComponent implements OnInit {
         ]
       },
       options: {
-        aspectRatio: 2.5
+        responsive: true,
+        maintainAspectRatio: false
       }
     });
     this.lineChart = lineChart;

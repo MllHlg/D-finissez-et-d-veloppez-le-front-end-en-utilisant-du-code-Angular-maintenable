@@ -1,0 +1,31 @@
+@use 'src/styles/_mixins.scss' as *;
+
+.main-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-wrapper {
+    display: flex;
+    justify-content: center;
+    max-width: 400px;
+    height: 300px;
+    margin: 0 auto;
+
+
+    @include break(tablet) {
+        max-width: 500px;
+        height: 400px;
+    }
+
+    @include break(desktop) {
+        max-width: 600px;
+        height: 500px;
+    }
+
+    canvas {
+        display: block;
+        width: 100% !important;
+        height: 100% !important;
+    }
+}

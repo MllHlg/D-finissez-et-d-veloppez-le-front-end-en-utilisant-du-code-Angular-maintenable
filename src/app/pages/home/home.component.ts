@@ -2,6 +2,8 @@ import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {Component, OnInit} from '@angular/core';
 import { Router } from '@angular/router';
 import Chart from 'chart.js/auto';
+import { HeaderComponent } from 'src/app/components/header/header.component';
+import { Header } from 'src/app/models/header.model';
 
 @Component({
   selector: 'app-home',
@@ -14,14 +16,13 @@ export class HomeComponent implements OnInit {
   public totalCountries: number = 0
   public totalJOs: number = 0
   public error!:string
-  titlePage: string = "Medals per Country";
+  public header!: Header;
 
   constructor(private router: Router, private http:HttpClient) { }
 
   ngOnInit() {
     this.http.get<any[]>(this.olympicUrl).pipe().subscribe(
       (data) => {
-        console.log(`Liste des données : ${JSON.stringify(data)}`);
         if (data && data.length > 0) {
           this.totalJOs = Array.from(new Set(data.map((i: any) => i.participations.map((f: any) => f.year)).flat())).length;
           const countries: string[] = data.map((i: any) => i.country);
@@ -29,10 +30,16 @@ export class HomeComponent implements OnInit {
           const medals = data.map((i: any) => i.participations.map((i: any) => (i.medalsCount)));
           const sumOfAllMedalsYears = medals.map((i) => i.reduce((acc: any, i: any) => acc + i, 0));
           this.buildPieChart(countries, sumOfAllMedalsYears);
+          this.header = {
+            title: "Medals per Country",
+            listOfHeaderCards: [
+              { title: "Number of countries", numberValue: this.totalCountries },
+                { title: "Number of JOs", numberValue: this.totalJOs }
+            ]
+          };
         }
       },
       (error:HttpErrorResponse) => {
-        console.log(`erreur : ${error}`);
         this.error = error.message
       }
     )
@@ -51,7 +58,8 @@ export class HomeComponent implements OnInit {
         }],
       },
       options: {
-        aspectRatio: 2.5,
+        responsive: true,
+        maintainAspectRatio: false,
         onClick: (e) => {
           if (e.native) {
             const points = pieChart.getElementsAtEventForMode(e.native, 'point', { intersect: true }, true)

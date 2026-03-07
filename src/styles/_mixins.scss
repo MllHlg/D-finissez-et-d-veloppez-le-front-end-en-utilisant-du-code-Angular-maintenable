@@ -1,0 +1,19 @@
+/* Desktop ≥ 1200px : 12 colonnes, contenus côte à côte
+Tablette ~ 768–1199px : 8 colonnes, graphe pleine largeur
+Mobile ≤ 767px : 4 colonnes, pile verticale */
+
+$breakpoints: (
+    mobile: 0px,
+    tablet: 768px,
+    desktop: 1200px,
+);
+
+@mixin break($breakpoint) {
+    @if map-has-key($breakpoints, $breakpoint) {
+        @media screen and (min-width: map-get($breakpoints, $breakpoint)) {
+            @content;
+        }
+    } @else {
+        @warn "La valeur #{$breakpoint} n'existe pas dans breakpoints.";
+    }
+}

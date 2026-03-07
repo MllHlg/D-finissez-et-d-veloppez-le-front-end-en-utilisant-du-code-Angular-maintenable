@@ -1,30 +1,12 @@
-<div>
-  <div>
-    <div class="center">
-      <div>{{ titlePage }}</div>
+<div class="main-container">
+  <app-header [headerInfos]="header"></app-header>
+  <div class="chart-container">
+    <div class="chart-wrapper">
+      <canvas id="countryChart" aria-label="Graphique du nombre de médailles d'un pays par année"></canvas>
     </div>
-    <div class="split">
-      <div>
-        <p>Number of entries</p>
-        <p>{{ totalEntries }}</p>
-      </div>
-      <div>
-        <p>Total Number of medals</p>
-        <p>{{ totalMedals }}</p>
-      </div>
-      <div>
-        <p>Total Number of athletes</p>
-        <p>{{ totalAthletes }}</p>
-      </div>
-    </div>
+    <h2>Date</h2>
   </div>
-  <div class="chart-container wrapper-container">
-    <div class="container">
-      <canvas id="countryChart">{{ lineChart }}</canvas>
-      <h2>Date</h2>
-    </div>
-  </div>
-  <div class="center">
+  <div class="back-button">
     <a routerLink="">Go back</a>
   </div>
 </div>

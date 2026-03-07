@@ -1,19 +1,58 @@
+@use 'src/styles/_mixins.scss' as *;
 
-.wrapper-container {
+.main-container {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+
+    .back-button {
+        display: flex;
+        justify-content: center;
+        margin: 5px;
+        
+        a {
+            background: #0b868f;
+            padding: 10px;
+            border-radius: 10px;
+            color: white;
+        }
+    }
 }
 
-.container {
-    width: 50%;
+.chart-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 500px;
+    height: 300px;
+    margin: 0 auto;
+
+    @include break(tablet) {
+        max-width: 700px;
+        height: 400px;
+    }
+
+    @include break(desktop) {
+        max-width: 900px;
+        height: 500px;
+    }
+
+    .chart-wrapper {
+        width: 90%;
+        flex-grow: 1;
+        min-height: 0;
+        position: relative;
+    }
+
     h2{
         text-align: center;
         color: gray;
     }
-}
 
-@media screen and (max-width: 1000px) {
-    .container {
-        width: 100%;
+    canvas {
+        display: block;
+        width: 100% !important;
+        height: 100% !important;
     }
 }

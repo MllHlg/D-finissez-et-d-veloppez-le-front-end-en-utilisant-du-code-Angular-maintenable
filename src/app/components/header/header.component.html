@@ -1,0 +1,11 @@
+<div class="header-container">
+    <div class="header-title-card">
+        <p>{{headerInfos.title}}</p>
+    </div>
+
+    <div class="header-cards-row">
+        @for (headerCard of headerInfos.listOfHeaderCards; track headerCard.title) {
+            <app-header-card [headerCard]="headerCard" />
+        }
+    </div>
+</div>

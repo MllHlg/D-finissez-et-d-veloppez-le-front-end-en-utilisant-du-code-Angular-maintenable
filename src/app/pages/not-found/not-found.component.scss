@@ -5,4 +5,11 @@
   justify-content: center;
   align-items: center;
   flex-direction: column;
+
+  a {
+      background: #0b868f;
+      padding: 10px;
+      border-radius: 10px;
+      color: white;
+  }
 }
