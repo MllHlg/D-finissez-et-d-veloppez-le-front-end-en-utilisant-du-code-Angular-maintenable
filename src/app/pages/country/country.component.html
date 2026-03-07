@@ -1,5 +1,11 @@
 <div class="main-container">
-  <app-header [headerInfos]="header"></app-header>
+  <app-header 
+    *ngIf="header$ | async as headerData; 
+    else loading" [headerInfos]="headerData">
+  </app-header>
+  <ng-template #loading>
+    <p>Loading data...</p> 
+  </ng-template>
   <div class="chart-container">
     <div class="chart-wrapper">
       <canvas id="countryChart" aria-label="Graphique du nombre de médailles d'un pays par année"></canvas>

@@ -11,7 +11,7 @@
     max-width: 400px;
     height: 300px;
     margin: 0 auto;
-
+    position: relative;
 
     @include break(tablet) {
         max-width: 500px;

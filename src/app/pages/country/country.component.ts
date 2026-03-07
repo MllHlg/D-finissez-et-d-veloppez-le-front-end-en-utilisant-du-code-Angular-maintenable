@@ -1,8 +1,9 @@
-import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import Chart from 'chart.js/auto';
+import { combineLatest, filter, Head, map, Observable, of, shareReplay, Subscription, switchMap, tap } from 'rxjs';
 import { Header } from 'src/app/models/header.model';
+import { DataService } from 'src/app/services/data.service';
 
 
 @Component({
@@ -10,53 +11,79 @@ import { Header } from 'src/app/models/header.model';
   templateUrl: './country.component.html',
   styleUrls: ['./country.component.scss']
 })
-export class CountryComponent implements OnInit {
-  private olympicUrl = './assets/mock/olympic.json';
-  public lineChart!: Chart<"line", string[], number>;
-  public titlePage: string = '';
-  public totalEntries: any = 0;
-  public totalMedals: number = 0;
-  public totalAthletes: number = 0;
-  public error!: string;
-  public header!: Header;
+export class CountryComponent implements OnInit, OnDestroy {
+  public lineChart!: Chart<"line", number[], number>;
+  public header$!: Observable<Header>
+  private subscription: Subscription = new Subscription();
 
-  constructor(private route: ActivatedRoute, private router: Router, private http: HttpClient) {
+  constructor(private route: ActivatedRoute, private router: Router, private dataService: DataService) {
   }
 
   ngOnInit() {
-    let countryName: string | null = null
-    this.route.paramMap.subscribe((param: ParamMap) => countryName = param.get('countryName'));
-    this.http.get<any[]>(this.olympicUrl).pipe().subscribe(
-      (data) => {
-        if (data && data.length > 0) {
-          const selectedCountry = data.find((i: any) => i.country === countryName);
-          this.titlePage = selectedCountry.country;
-          const participations = selectedCountry?.participations.map((i: any) => i);
-          this.totalEntries = participations?.length ?? 0;
-          const years = selectedCountry?.participations.map((i: any) => i.year) ?? [];
-          const medals = selectedCountry?.participations.map((i: any) => i.medalsCount.toString()) ?? [];
-          this.totalMedals = medals.reduce((accumulator: any, item: any) => accumulator + parseInt(item), 0);
-          const nbAthletes = selectedCountry?.participations.map((i: any) => i.athleteCount.toString()) ?? []
-          this.totalAthletes = nbAthletes.reduce((accumulator: any, item: any) => accumulator + parseInt(item), 0);
-          this.buildChart(years, medals);
-          this.header = {
-            title: this.titlePage,
-            listOfHeaderCards: [
-              { title: "Number of entries", numberValue: this.totalEntries },
-              { title: "Total Number of medals", numberValue: this.totalMedals },
-              { title: "Total Number of athletes", numberValue: this.totalAthletes }
-            ]
-          }
-        }
-      },
-      (error: HttpErrorResponse) => {
-        this.error = error.message
-      }
+    // Gestion du nom de pays donné
+    const countryName$ = this.route.paramMap.pipe(
+      map((param: ParamMap) => param.get('countryName')),
+      switchMap(countryName => {
+        // Vérification de la présence du nom du pays 
+        // ainsi que de son existence dans le service
+        if(!countryName) return of (null)
+        return this.dataService.getCountryTotalEntries(countryName).pipe(
+          map((entries: number) => (entries === 0 ? null : countryName))
+        );
+      }),
+      // Si le nom n'est pas valide, on retourne à la page d'accueil
+      tap(countryName => {
+        if(!countryName) this.router.navigateByUrl('/');
+      }),
+      // Vérification du type de countryName
+      filter((countryName): countryName is string => !!countryName),
+      // Permet d'éviter de relancer la vérification pour chaque abonné
+      shareReplay(1)
+    );
+
+    // Création du component Header en fonction du pays
+    this.header$ = countryName$.pipe(
+      switchMap(countryName => this.getHeaderData(countryName))
+    );
+
+    // Création du graphe des médails par date en fonction du pays
+    const chartSub = countryName$.pipe(
+      switchMap(countryName => combineLatest([
+          this.dataService.getCountryYearsOfEntries(countryName),
+          this.dataService.getCountryMedalsByEntries(countryName)
+      ]))
+    ).subscribe(([years, medals]) => {
+        this.buildChart(years, medals);
+    });
+
+    this.subscription.add(chartSub)
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+    this.lineChart?.destroy();
+  }
+
+  private getHeaderData(countryName: string): Observable<Header> {
+    return combineLatest([
+      this.dataService.getCountryTotalEntries(countryName), 
+      this.dataService.getCountryTotalMedals(countryName), 
+      this.dataService.getCountryTotalAthletes(countryName)
+    ]).pipe(
+      map(([totalEntries, totalMedals, totalAthletes]) => ({
+        title: countryName,
+        listOfHeaderCards: [
+          { title: "Number of entries", numberValue: totalEntries },
+          { title: "Total Number of medals", numberValue: totalMedals },
+          { title: "Total Number of athletes", numberValue: totalAthletes }
+        ]
+      }))
     );
   }
 
-  buildChart(years: number[], medals: string[]) {
-    const lineChart = new Chart("countryChart", {
+  buildChart(years: number[], medals: number[]) {
+    this.lineChart?.destroy();
+    this.lineChart = new Chart("countryChart", {
       type: 'line',
       data: {
         labels: years,
@@ -73,6 +100,5 @@ export class CountryComponent implements OnInit {
         maintainAspectRatio: false
       }
     });
-    this.lineChart = lineChart;
   }
 }

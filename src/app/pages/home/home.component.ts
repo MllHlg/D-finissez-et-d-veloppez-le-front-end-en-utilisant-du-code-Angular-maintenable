@@ -1,52 +1,56 @@
-import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import { Router } from '@angular/router';
 import Chart from 'chart.js/auto';
-import { HeaderComponent } from 'src/app/components/header/header.component';
+import { combineLatest, map, Observable, Subscription } from 'rxjs';
 import { Header } from 'src/app/models/header.model';
+import { DataService } from 'src/app/services/data.service';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
-export class HomeComponent implements OnInit {
-  private olympicUrl = './assets/mock/olympic.json';
+export class HomeComponent implements OnInit, OnDestroy {
   public pieChart!: Chart<"pie", number[], string>;
-  public totalCountries: number = 0
-  public totalJOs: number = 0
-  public error!:string
-  public header!: Header;
+  public header$!: Observable<Header>
+  private subscription: Subscription = new Subscription();
 
-  constructor(private router: Router, private http:HttpClient) { }
+  constructor(private router: Router, private dataService: DataService) { }
 
   ngOnInit() {
-    this.http.get<any[]>(this.olympicUrl).pipe().subscribe(
-      (data) => {
-        if (data && data.length > 0) {
-          this.totalJOs = Array.from(new Set(data.map((i: any) => i.participations.map((f: any) => f.year)).flat())).length;
-          const countries: string[] = data.map((i: any) => i.country);
-          this.totalCountries = countries.length;
-          const medals = data.map((i: any) => i.participations.map((i: any) => (i.medalsCount)));
-          const sumOfAllMedalsYears = medals.map((i) => i.reduce((acc: any, i: any) => acc + i, 0));
-          this.buildPieChart(countries, sumOfAllMedalsYears);
-          this.header = {
-            title: "Medals per Country",
-            listOfHeaderCards: [
-              { title: "Number of countries", numberValue: this.totalCountries },
-                { title: "Number of JOs", numberValue: this.totalJOs }
-            ]
-          };
+    this.header$ = combineLatest([
+      this.dataService.totalCountries$, 
+      this.dataService.totalJOs$
+    ]).pipe(
+      map(([totalCountries, totalJOs]) => ({
+        title: "Medals per Country",
+        listOfHeaderCards: [
+          { title: "Number of countries", numberValue: totalCountries },
+          { title: "Number of JOs", numberValue: totalJOs }
+        ]
+      }))
+    );
+
+    const chartSub = combineLatest([
+      this.dataService.countries$, 
+      this.dataService.totalMedalsPerCountry$
+    ]).subscribe(([countries, medals]) => {
+        if (countries.length > 0) {
+          this.buildPieChart(countries, medals);
         }
-      },
-      (error:HttpErrorResponse) => {
-        this.error = error.message
-      }
-    )
+      });
+
+    this.subscription.add(chartSub);
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+    this.pieChart?.destroy();
   }
 
   buildPieChart(countries: string[], sumOfAllMedalsYears: number[]) {
-    const pieChart = new Chart("DashboardPieChart", {
+    this.pieChart?.destroy();
+    this.pieChart = new Chart("DashboardPieChart", {
       type: 'pie',
       data: {
         labels: countries,
@@ -60,19 +64,14 @@ export class HomeComponent implements OnInit {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        onClick: (e) => {
-          if (e.native) {
-            const points = pieChart.getElementsAtEventForMode(e.native, 'point', { intersect: true }, true)
-            if (points.length) {
-              const firstPoint = points[0];
-              const countryName = pieChart.data.labels ? pieChart.data.labels[firstPoint.index] : '';
-              this.router.navigate(['country', countryName]);
-            }
+        onClick: (_, elements) => {
+          if (elements.length > 0) {
+            const index = elements[0].index;
+            const countryName = countries[index];
+            this.router.navigate(['country', countryName]);
           }
         }
       }
     });
-    this.pieChart = pieChart;
   }
 }
-
