@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import Chart from 'chart.js/auto';
-import { combineLatest, filter, Head, map, Observable, of, shareReplay, Subscription, switchMap, tap } from 'rxjs';
+import { combineLatest, filter, map, Observable, of, shareReplay, Subscription, switchMap, tap } from 'rxjs';
 import { Header } from 'src/app/models/header.model';
 import { DataService } from 'src/app/services/data.service';
 
@@ -20,40 +20,41 @@ export class CountryComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Gestion du nom de pays donné
-    const countryName$ = this.route.paramMap.pipe(
-      map((param: ParamMap) => param.get('countryName')),
-      switchMap(countryName => {
-        // Vérification de la présence du nom du pays 
-        // ainsi que de son existence dans le service
-        if(!countryName) return of (null)
-        return this.dataService.getCountryTotalEntries(countryName).pipe(
-          map((entries: number) => (entries === 0 ? null : countryName))
+    const countryID$ = this.route.paramMap.pipe(
+      map((param: ParamMap) => {
+        const idStr = param.get('id');
+        return idStr ? parseInt(idStr, 10) : null;
+      }),
+      switchMap((countryID: number | null) => {
+        if (countryID === null) {
+          return this.router.navigateByUrl('not-found');
+        }
+        return this.dataService.getCountryTotalEntries(countryID).pipe(
+          map((entries: number) => (entries === 0 ? null : countryID))
         );
       }),
-      // Si le nom n'est pas valide, on retourne à la page d'accueil
-      tap(countryName => {
-        if(!countryName) this.router.navigateByUrl('/');
+      tap(countryID => {
+        if(!countryID) this.router.navigateByUrl('not-found');
       }),
-      // Vérification du type de countryName
-      filter((countryName): countryName is string => !!countryName),
-      // Permet d'éviter de relancer la vérification pour chaque abonné
+      filter((countryID): countryID is number => !!countryID),
       shareReplay(1)
     );
 
-    // Création du component Header en fonction du pays
-    this.header$ = countryName$.pipe(
-      switchMap(countryName => this.getHeaderData(countryName))
+    this.header$ = countryID$.pipe(
+      switchMap((countryID: number) => this.getHeaderData(countryID))
     );
 
-    // Création du graphe des médails par date en fonction du pays
-    const chartSub = countryName$.pipe(
-      switchMap(countryName => combineLatest([
-          this.dataService.getCountryYearsOfEntries(countryName),
-          this.dataService.getCountryMedalsByEntries(countryName)
+    const chartSub = countryID$.pipe(
+      switchMap((countryID: number) => combineLatest([
+          this.dataService.getCountryYearsOfEntries(countryID),
+          this.dataService.getCountryMedalsByEntries(countryID)
       ]))
     ).subscribe(([years, medals]) => {
-        this.buildChart(years, medals);
+        if (years && medals) {
+          this.buildChart(years, medals);
+        } else {
+          this.router.navigateByUrl('not-found');
+        }
     });
 
     this.subscription.add(chartSub)
@@ -64,13 +65,14 @@ export class CountryComponent implements OnInit, OnDestroy {
     this.lineChart?.destroy();
   }
 
-  private getHeaderData(countryName: string): Observable<Header> {
+  private getHeaderData(countryID: number): Observable<Header> {
     return combineLatest([
-      this.dataService.getCountryTotalEntries(countryName), 
-      this.dataService.getCountryTotalMedals(countryName), 
-      this.dataService.getCountryTotalAthletes(countryName)
+      this.dataService.getCountryNameByID(countryID),
+      this.dataService.getCountryTotalEntries(countryID), 
+      this.dataService.getCountryTotalMedals(countryID), 
+      this.dataService.getCountryTotalAthletes(countryID)
     ]).pipe(
-      map(([totalEntries, totalMedals, totalAthletes]) => ({
+      map(([countryName, totalEntries, totalMedals, totalAthletes]) => ({
         title: countryName,
         listOfHeaderCards: [
           { title: "Number of entries", numberValue: totalEntries },
@@ -97,8 +99,20 @@ export class CountryComponent implements OnInit, OnDestroy {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        animation: {
+          duration: 0
+        },
+        elements: {
+          point: {
+            hoverRadius: 6
+          }
+        },
       }
     });
+
+    setTimeout(() => {
+      this.lineChart.resize();
+    }, 0);
   }
 }

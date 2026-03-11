@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import { Router } from '@angular/router';
 import Chart from 'chart.js/auto';
-import { combineLatest, map, Observable, Subscription } from 'rxjs';
+import { combineLatest, firstValueFrom, map, Observable, Subscription, switchMap, take } from 'rxjs';
 import { Header } from 'src/app/models/header.model';
 import { DataService } from 'src/app/services/data.service';
 
@@ -64,11 +64,25 @@ export class HomeComponent implements OnInit, OnDestroy {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        onClick: (_, elements) => {
+        onHover: (event, elements, chart) => {
+          if (chart.canvas) {
+            chart.canvas.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+          }
+        },
+        onClick: async (_, elements) => {
           if (elements.length > 0) {
             const index = elements[0].index;
             const countryName = countries[index];
-            this.router.navigate(['country', countryName]);
+            try {
+              const id = await firstValueFrom(this.dataService.getCountryIDByName(countryName));
+              if (id!=-1) {
+                this.router.navigate(['country', id])
+              } else {
+                this.router.navigate(['not-found'])
+              }
+            } catch (error) {
+              this.router.navigate(['not-found']);
+            }
           }
         }
       }
