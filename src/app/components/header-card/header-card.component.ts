@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { HeaderCard } from 'src/app/models/header-card.model';
+import { HeaderCard } from 'src/app/core/models/header-card.model';
 
 @Component({
   selector: 'app-header-card',

@@ -2,8 +2,8 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import Chart from 'chart.js/auto';
 import { combineLatest, filter, map, Observable, of, shareReplay, Subscription, switchMap, tap } from 'rxjs';
-import { Header } from 'src/app/models/header.model';
-import { DataService } from 'src/app/services/data.service';
+import { Header } from 'src/app/core/models/header.model';
+import { DataService } from 'src/app/core/services/data.service';
 
 
 @Component({
@@ -15,11 +15,13 @@ export class CountryComponent implements OnInit, OnDestroy {
   public lineChart!: Chart<"line", number[], number>;
   public header$!: Observable<Header>
   private subscription: Subscription = new Subscription();
+  public errorMessage$!: Observable<string | null>;
 
   constructor(private route: ActivatedRoute, private router: Router, private dataService: DataService) {
   }
 
   ngOnInit() {
+    this.errorMessage$ = this.dataService.errorMessage$;
     const countryID$ = this.route.paramMap.pipe(
       map((param: ParamMap) => {
         const idStr = param.get('id');
@@ -51,7 +53,9 @@ export class CountryComponent implements OnInit, OnDestroy {
       ]))
     ).subscribe(([years, medals]) => {
         if (years && medals) {
-          this.buildChart(years, medals);
+          setTimeout(() => {
+            this.buildChart(years, medals);
+          }, 0);
         } else {
           this.router.navigateByUrl('not-found');
         }

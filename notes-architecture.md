@@ -47,4 +47,4 @@ src/app/
 
 ```
 ## Diagramme de l'architecture
-![Diagramme de la structure](Diagramme_structure.jpg "Diagramme de la structure")
+![Diagramme de la structure](./images/Diagramme_structure.jpg "Diagramme de la structure")

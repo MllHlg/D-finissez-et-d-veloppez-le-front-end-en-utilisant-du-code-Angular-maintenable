@@ -2,14 +2,15 @@
 ```
 src/app/
   ├── components/  
-      ├── header/
-      ├── header-card/
+    ├── header/
+    ├── header-card/
   ├── pages/ 
-      ├── home/
-      ├── country/
-      ├── not-found/
-  ├── services/
-  ├── models/
+    ├── home/
+    ├── country/
+    ├── not-found/
+  ├── core/
+    ├── services/
+    ├── models/
 ```
 
 ## Les composants

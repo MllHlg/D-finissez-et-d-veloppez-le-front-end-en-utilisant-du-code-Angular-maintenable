@@ -1,17 +1,31 @@
 <div class="main-container">
-  <app-header 
-    *ngIf="header$ | async as headerData; 
-    else loading" [headerInfos]="headerData">
-  </app-header>
-  <ng-template #loading>
-    <p>Loading data...</p> 
-  </ng-template>
-  <div class="chart-container">
-    <div class="chart-wrapper">
-      <canvas id="countryChart" aria-label="Graphique du nombre de médailles d'un pays par année"></canvas>
+  <ng-container *ngIf="errorMessage$ | async as error; else content">
+    <div class="error-container">
+      <p>{{ error }}</p>
     </div>
-    <h2>Date</h2>
-  </div>
+  </ng-container>
+  
+  <ng-template #content>
+    <app-header
+      *ngIf="header$ | async as headerData; else loading"
+      [headerInfos]="headerData"
+    >
+    </app-header>
+
+    <ng-template #loading>
+      <p>Loading data...</p>
+    </ng-template>
+
+    <div class="chart-container">
+      <div class="chart-wrapper">
+        <canvas
+          id="countryChart"
+          aria-label="Graphique du nombre de médailles d'un pays par année"
+        ></canvas>
+      </div>
+      <h2>Date</h2>
+    </div>
+  </ng-template>
   <div class="back-button">
     <a routerLink="">Go back</a>
   </div>

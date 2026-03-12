@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import { Olympic } from '../models/olympic.model';
-import { BehaviorSubject, catchError, map, Observable, tap, shareReplay, of } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, tap, shareReplay, of, filter, throwError } from 'rxjs';
 import { Participation } from '../models/participation.model';
 
 @Injectable({
@@ -9,7 +9,8 @@ import { Participation } from '../models/participation.model';
 })
 export class DataService {
     private olympicUrl = './assets/mock/olympic.json';
-    private olympics$ = new BehaviorSubject<Olympic[]>([])
+    private olympics$ = new BehaviorSubject<Olympic[]>([]);
+    public errorMessage$ = new BehaviorSubject<string | null>(null);
 
     constructor(private http:HttpClient) { }
 
@@ -17,6 +18,7 @@ export class DataService {
         return this.http.get<Olympic[]>(this.olympicUrl).pipe(
             tap((countries: Olympic[]) => this.olympics$.next(countries)),
             catchError((error: Error) => {
+                this.errorMessage$.next("Impossible de charger les données olympiques.");
                 this.olympics$.next([]); 
                 return of([]);
             })
@@ -24,7 +26,9 @@ export class DataService {
     }
 
     getOlympics(): Observable<Olympic[]> {
-        return this.olympics$.asObservable();
+        return this.olympics$.asObservable().pipe(
+            filter((olympics: Olympic[]) => olympics && olympics.length > 0)
+        );
     }
 
     public countries$: Observable<string[]> = this.getOlympics().pipe(

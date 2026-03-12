@@ -2,8 +2,8 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import { Router } from '@angular/router';
 import Chart from 'chart.js/auto';
 import { combineLatest, firstValueFrom, map, Observable, Subscription, switchMap, take } from 'rxjs';
-import { Header } from 'src/app/models/header.model';
-import { DataService } from 'src/app/services/data.service';
+import { Header } from 'src/app/core/models/header.model';
+import { DataService } from 'src/app/core/services/data.service';
 
 @Component({
   selector: 'app-home',
@@ -14,10 +14,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   public pieChart!: Chart<"pie", number[], string>;
   public header$!: Observable<Header>
   private subscription: Subscription = new Subscription();
+  public errorMessage$!: Observable<string | null>;
 
   constructor(private router: Router, private dataService: DataService) { }
 
   ngOnInit() {
+    this.errorMessage$ = this.dataService.errorMessage$;
     this.header$ = combineLatest([
       this.dataService.totalCountries$, 
       this.dataService.totalJOs$
@@ -36,7 +38,9 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.dataService.totalMedalsPerCountry$
     ]).subscribe(([countries, medals]) => {
         if (countries.length > 0) {
-          this.buildPieChart(countries, medals);
+          setTimeout(() => {
+            this.buildPieChart(countries, medals);
+          }, 0);
         }
       });
 

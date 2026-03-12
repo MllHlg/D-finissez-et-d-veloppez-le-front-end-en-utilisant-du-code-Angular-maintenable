@@ -1,14 +1,28 @@
 <h2>Olympic games app</h2>
-<hr/>
+<hr />
 <div class="main-container">
-  <app-header 
-    *ngIf="header$ | async as headerData; 
-    else loading" [headerInfos]="headerData">
-  </app-header>
-  <ng-template #loading>
-    <p>Loading data...</p> 
+  <ng-container *ngIf="errorMessage$ | async as error; else content">
+    <div class="error-container">
+      <p>{{ error }}</p>
+    </div>
+  </ng-container>
+  
+  <ng-template #content>
+    <app-header
+      *ngIf="header$ | async as headerData; else loading"
+      [headerInfos]="headerData"
+    >
+    </app-header>
+
+    <ng-template #loading>
+      <p>Loading data...</p>
+    </ng-template>
+
+    <div class="chart-wrapper">
+      <canvas
+        id="DashboardPieChart"
+        aria-label="Graphique du nombdre de médailles par pays"
+      ></canvas>
+    </div>
   </ng-template>
-  <div class="chart-wrapper">
-    <canvas id="DashboardPieChart" aria-label="Graphique du nombdre de médailles par pays"></canvas>
-  </div>
 </div>

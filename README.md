@@ -1,29 +1,82 @@
 # OlympicGamesStarter
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.0.6.
+Application Angular de gestion et de visualisation des données des Jeux Olympiques.
 
-Don't forget to install your node_modules before starting (`npm install`).
+Ce projet a été généré avec [Angular CLI](https://github.com/angular/angular-cli) version 18.0.6. Il sert de base pour développer une application complète de suivi des Jeux Olympiques.
 
-## Development server
+## Sommaire
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- [Installation](#installation)
+- [Scripts de lancement](#scripts-de-lancement)
+- [Structure du projet](#structure-du-projet)
+- [Limites et axes d'amélioration](#limites-et-axes-damélioration)
+- [Captures d'écran](#captures-décran)
 
-## Build
+## Installation
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+Assurez-vous d'avoir **Node.js** et **npm** installés sur votre machine.
 
-## Where to start
+1. Clonez le dépôt ou téléchargez le projet.
+2. Installez les dépendances :
 
-As you can see, an architecture has already been defined for the project. It is just a suggestion, you can choose to use your own. The predefined architecture includes (in addition to the default angular architecture) the following:
+```bash
+npm install
+```
 
-- `components` folder: contains every reusable components
-- `pages` folder: contains components used for routing
-- `core` folder: contains the business logic (`services` and `models` folders)
+## Scripts de lancement
 
-I suggest you to start by understanding this starter code. Pay an extra attention to the `app-routing.module.ts` and the `olympic.service.ts`.
+Lancez un serveur de développement local :
 
-Once mastered, you should continue by creating the typescript interfaces inside the `models` folder. As you can see I already created two files corresponding to the data included inside the `olympic.json`. With your interfaces, improve the code by replacing every `any` by the corresponding interface.
+```bash
+ng serve
+```
 
-You're now ready to implement the requested features.
+Naviguez ensuite vers http://localhost:4200/.
 
-Good luck!
+## Structure du projet
+
+L'architecture a été organisée pour séparer clairement la logique métier, les vues et les composants réutilisables :
+
+```text
+src/app/
+    ├── components/       # Composants réutilisables
+    ├── pages/            # Composants utilisés pour le routage
+    ├── core/             # Logique métier
+        ├── services/     # Services
+        ├── models/       # Interfaces et types
+```
+
+`components` : Contient tous les composants réutilisables.
+
+`pages` : Contient les composants associés aux routes de l'application.
+
+`core` : Renferme la logique métier, notamment les services et les modèles de données.
+
+## Limites et axes d'amélioration
+
+### Limitations actuelles
+
+Données statiques : L'application repose sur un fichier JSON local. Elle n'est pas connectée à une API externe dynamique, ce qui fige les données à la version du fichier inclus.
+
+### Pistes d'évolution
+
+Connexion API : Remplacer le service actuel par un appel à une API REST publique des Jeux Olympiques pour des données en temps réel.
+Nouvelles fonctionnalités : Ajout d'un système de recherche, de filtres multi-critères (par année, sport, pays).
+
+## Captures d'écran
+
+UI de la homepage sur desktop
+
+![UI Desktop Home Page](./images/UI_Homepage_Desktop.png "UI Desktop Home Page")
+
+UI de la coutry page sur desktop
+
+![UI Desktop Country Page](./images/UI_Country_Page_Desktop.png "UI Desktop Countre Page")
+
+UI de la homepage sur mobile
+
+![UI Mobile Home Page](./images/UI_Homepage_Mobile.png "UI Mobile Home Page")
+
+UI de la country page sur mobile
+
+![UI Mobile Country Page](./images/UI_Country_Page_Mobile.png "UI Mobile Countre Page")
